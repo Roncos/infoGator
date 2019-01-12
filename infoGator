@@ -1,0 +1,1006 @@
+#!/bin/bash
+version="version 0.1"
+tag()
+{
+  echo -n $'\e[1;92m'
+  echo "######################################################################################"
+  echo $''
+  echo $'              _.---._     .---.'
+  echo $'            __...---\' .---. `---\'-.   `.'
+  #echo $'        .-\'\'__.--\' _.\'( | )`.  `.  `._ :'
+  echo -n $'\e[1;92m       .-\'\'__.--\' _.\''
+  echo -n $'\e[1;93m ( | )'
+  echo $'\e[1;92m `.  `.  `._ :'
+  echo $'     .\'__-\'_ .--\'\' ._`---\'_.-.  `.   `-`.'
+  echo $'             ~ -._ -._``---. -.    `-._   `.'
+  echo $'                  ~ -.._ _ _ _ ..-_ `.  `-._``--.._'
+  echo $'                               -~ -._  `-.  -. `-._``--.._.--\'\'.'
+  echo $'                                    ~ ~-.__     -._  `-.__   `. `.'
+  echo $'                                           ~~ ~---...__ _    ._ .` `. '
+  echo $'                                                      ~  ~--.....--~`'
+  echo $'  __             ______              ______               __                         '
+  echo $' /  |           /      \            /      \             /  |                        '
+  echo $' $$/  _______  /$$$$$$  |  ______  /$$$$$$  |  ______   _$$ |_     ______    ______  '
+  echo $' /  |/       \ $$ |_ $$/  /      \ $$ | _$$/  /      \ / $$   |   /      \  /      \ '
+  echo $' $$ |$$$$$$$  |$$   |    /$$$$$$  |$$ |/    | $$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |'
+  echo $' $$ |$$ |  $$ |$$$$/     $$ |  $$ |$$ |$$$$ | /    $$ |  $$ | __ $$ |  $$ |$$ |  $$/ '
+  echo $' $$ |$$ |  $$ |$$ |      $$ \__$$ |$$ \__$$ |/$$$$$$$ |  $$ |/  |$$ \__$$ |$$ |      '
+  echo $' $$ |$$ |  $$ |$$ |      $$    $$/ $$    $$/ $$    $$ |  $$  $$/ $$    $$/ $$ |      '
+  echo $' $$/ $$/   $$/ $$/        $$$$$$/   $$$$$$/   $$$$$$$/    $$$$/   $$$$$$/  $$/       '
+  echo "                                                                                      "
+  echo -e '######################################################################################\e[00m'
+
+
+}
+
+#todo
+usage () 
+{ 
+echo -e "\n\e[1;32m######################################################################################\e[00m" 
+echo -e "\e[01;32m###\e[00m" "Local Linux Information Gatherer" "\e[01;32m###\e[00m"
+echo -e "\e[1;32m######################################################################################\e[00m"
+
+echo -e " Example: \n" #todo
+
+	echo "./infoGator.sh -a"
+	echo "./infoGator.sh -n 192.168.10.11"
+	echo "./infoGator.sh -d -s -n 192.168.10.11"
+    echo "OPTIONS:"
+    echo "-a  Run all tests on host" #todo #??
+    echo "-h  Displays usage info"
+    echo "-v  Print current version"
+    echo "-n [IP] Network Scanning Mode - scan given IP and run tests on open ports"
+    echo "	  	  IMPORTANT Nmap is required to run the script in this mode"
+    echo "		  WARNING use Network Scanning Mode options BEFORE specifing -n"	
+    echo "-s  Network Scanning Mode - saves the scan in the current directory"
+    echo "-d  Network Scanning Mode - download entire site in the current directory"
+    echo -e "\n"
+
+    echo "Running with no options = Machine Summary"
+    
+echo -e "\e[1;32m######################################################################################\e[00m"
+     
+}                                                                              
+
+
+# useful binaries (thanks to https://gtfobins.github.io/)
+binarylist='nmap\|perl\|awk\|find\|bash\|sh\|man\|more\|less\|vi\|emacs\|vim\|nc\|netcat\|python\|ruby\|lua\|irb\|tar\|zip\|gdb\|pico\|scp\|git\|rvim\|script\|ash\|csh\|curl\|dash\|ed\|env\|expect\|ftp\|sftp\|node\|php\|rpm\|rpmquery\|socat\|strace\|taskset\|tclsh\|telnet\|tftp\|wget\|wish\|zsh\|ssh'
+
+
+#check / add more commands | v1 end
+system(){
+
+  echo -e '\e[1;32m### SYSTEM ###########################################################################\e[00m'
+  echo -e ''
+  #basic kernel info
+  unameinfo=`uname -a 2>/dev/null`
+  if [ "$unameinfo" ]; then
+    echo -e "\e[1;32m$ Kernel Information:\e[00m\n$unameinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #version information
+  versioninfo1=`cat /etc/issue 2>/dev/null`
+  if [ "$versioninfo1" ]; then
+    echo -e "\e[1;32m$ Version Information:\e[00m\n$versioninfo1" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+  
+  #complete distribution information
+  distribinfo=`cat /etc/*-release 2>/dev/null`
+  if [ "$distribinfo" ]; then
+    echo -e "\e[1;32m$ Distribution Information:\e[00m\n$distribinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #file system/s mounted 
+  mountedfs=`mount 2>/dev/null`
+  if [ "$mountedfs" ] && [ "$all" ]; then
+    echo -e "\e[1;32m$ Mounted File Systems:\e[00m\n$mountedfs" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+}
+
+#add commands / options check
+hardware(){
+  echo -e '\e[1;32m### Hardware #########################################################################\e[00m'
+  echo -e ''
+
+  #message from last boot
+  infoboot=`dmesg 2>/dev/null`
+  if [ "$infoboot" ]; then
+    echo -e "\e[1;32m$ Info from Last System Boot:\e[00m\n$infoboot" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #list PCI buses and devices
+  pciinfo=`lspci 2>/dev/null`
+  if [ "$pciinfo" ]; then
+    echo -e "\e[1;32m$ PCI Buses and Devices:\e[00m\n$pciinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #list USB buses and devices
+  usbinfo=`lsusb 2>/dev/null`
+  if [ "$usbinfo" ]; then
+    echo -e "\e[1;32m$ USB Buses and Devices:\e[00m\n$usbinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #print cpu info
+  cpuinfo=`lscpu 2>/dev/null`
+  cpuinfo2=`cat /proc/cpuinfo 2>/dev/null`
+  if [ "$cpuinfo" ]; then
+    echo -e "\e[1;32m$ CPU Information:\e[00m\n$cpuinfo" 
+    echo -e "\n" 
+  else 
+    if [ "$cpuinfo2" ]; then
+      echo -e "\e[1;32m$ CPU Information:\e[00m\n$cpuinfo2" 
+      echo -e "\n" 
+    fi
+  fi
+
+  #list machine components
+  hwinfo=`lshw 2>/dev/null`
+  if [ "$hwinfo" ]; then
+    echo -e "\e[1;32m$ Components Information:\e[00m\n$hwinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #display memory usage
+  meminfo=`cat /proc/meminfo 2>/dev/null`
+  if [ "$meminfo" ]; then
+    echo -e "\e[1;32m$ RAM Information:\e[00m\n$meminfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+}
+
+#add commands options check | v1 end
+environment(){
+  echo -e '\e[1;32m### Environment ######################################################################\e[00m'
+  echo -e ''
+  #print ENV var
+  envvar=`env 2>/dev/null`
+  if [ "$envvar" ]; then
+    echo -e "\e[1;32m$ Environment Variables:\e[00m\n$envvar" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #PATH config
+  pathinfo=`echo $PATH 2>/dev/null`
+  if [ "$pathinfo" ]; then
+    echo -e "\e[01;32m Path Information:\e[00m\n$pathinfo" 
+    echo -e "\n" 
+  else 
+   :
+  fi
+
+  #available shells
+  shellinfo=`cat /etc/shells 2>/dev/null`
+  if [ "$shellinfo" ]; then
+    echo -e "\e[01;32m Available Shells:\e[00m\n$shellinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #running processes
+  rprocinfo=`ps aux 2>/dev/null`
+  if [ "$rprocinfo" ]; then
+    echo -e "\e[01;32m Running processes:\e[00m\n$rprocinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #contents of inetd.conf
+  inetdcont=`cat /etc/inetd.conf 2>/dev/null`
+  if [ "$inetdcont" ]; then
+    echo -e "\e[01;32m Contents of /etc/inetd.conf:\e[00m\n$inetdcont" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+  
+  #contents of xinetd.conf
+  xinetdcont=`cat /etc/xinetd.conf 2>/dev/null`
+  if [ "$xinetdcont" ]; then
+    echo -e "\e[01;32m Contents of /etc/xinetd.conf:\e[00m\n$xinetdcont" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #permissions info in /etc/init.d
+  initdinfo=`ls -la /etc/init.d 2>/dev/null`
+  if [ "$initdinfo" ]; then
+    echo -e "\e[01;32m Files permissions in /etc/init.d :\e[00m\n$initdinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi 
+
+  #permissions info in /etc/rc.d/init.d
+  rcdinfo=`ls -la /etc/rc.d/init.d 2>/dev/null`
+  if [ "$rcdinfo" ]; then
+    echo -e "\e[01;32m Files permissions in /etc/rc.d/init.d :\e[00m\n$rcdinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #permissions info in /etc/init/
+  initinfo=`ls -la /etc/init/ 2>/dev/null`
+  if [ "$initread" ]; then
+    echo -e "\e[01;32m Files permissions in /etc/init/ :\e[00m\n$initread"
+    echo -e "\n"
+  else
+    :
+  fi
+
+  #permissions info in /lib/systemd/
+  systemdinfo=`ls -lthR /lib/systemd/ 2>/dev/null`
+  if [ "$systemdinfo" ]; then
+    echo -e "\e[01;32m Files permissions in /lib/systemd/ :\e[00m\n$systemdinfo"
+    echo -e "\n" 
+  else
+    :
+  fi
+
+
+  #print service name port and protocol info
+  servicesinfo=`cat /etc/services 2>/dev/null`
+  if [ "$servicesinfo" ] && [ "$all" ]; then
+    echo -e "\e[1;32m$ Services Info name|port|protocol :\e[00m\n$servicesinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  
+  #print installed packeges Debian
+  pkginfo=`dpkg -l 2>/dev/null`
+  if [ "$pkginfo" ] && [ "$all" ]; then
+    echo -e "\e[1;32m$ Installed Packages :\e[00m\n$pkginfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #print installed packeges Solaris
+  pkginfo2=`pkginfo 2>/dev/null`
+  if [ "$pkginfo2" ] && [ "$all" ]; then
+    echo -e "\e[1;32m$ Installed Packages :\e[00m\n$pkginfo2" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #print installed packeges Arch Linux
+  pkginfo3=`pacman -Q 2>/dev/null`
+  if [ "$pkginfo3" ] && [ "$all" ]; then
+    echo -e "\e[1;32m$ Installed Packages :\e[00m\n$pkginfo3" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+
+}
+
+
+version(){
+  echo -e "\e[1;32m$\e[00m  $version" 
+}
+
+#add commands check | v1 end
+network(){
+  echo -e '\e[1;32m### Network ##########################################################################\e[00m'
+  echo -e ''
+
+  #target hostname
+  hostnameinfo=`hostname -f 2>/dev/null`
+  if [ "$hostnameinfo" ]; then
+    echo -e "\e[01;32m Hostname:\e[00m\n$hostnameinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #print IP details
+  ipinfo=`ifconfig -a 2>/dev/null`
+  if [ "$ipinfo" ]; then
+    echo -e "\e[01;32m IP Information:\e[00m\n$ipinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #print IP details
+  ipinfo2=`ip addr show 2>/dev/null`
+  if [ "$ipinfo2" ] && [ "$all" ]; then
+    echo -e "\e[01;32m IP Information (using ip command):\e[00m\n$ipinfo2" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+
+  #print route details
+  iprouteinfo=`route -n 2>/dev/null`
+  if [ "$iprouteinfo" ]; then
+    echo -e "\e[01;32m Route Information:\e[00m\n$iprouteinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #print route details
+  iprouteinfo2=`ip ro show 2>/dev/null`
+  if [ "$iprouteinfo2" ] && [ "$all" ]; then
+    echo -e "\e[01;32m Route Information (using ip command):\e[00m\n$iprouteinfo2" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #arp info
+  arpinfo=`arp -a 2>/dev/null`
+  if [ "$arpinfo" ]; then
+    echo -e "\e[01;32m ARP history:\e[00m\n$arpinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #dns info
+  dnsinfo=`cat /etc/resolv.conf 2>/dev/null`
+  if [ "$dnsinfo" ]; then
+    echo -e "\e[01;32m DNS settings:\e[00m\n$dnsinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #print content of /interfaces
+  interfinfo=`cat /etc/network/interfaces 2>/dev/null`
+  if [ "$interfinfo" ]; then
+    echo -e "\e[01;32m Interfaces Information:\e[00m\n$interfinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #Print network connections, routing tables, interface statistics
+  netstatinfo=`netstat -anop 2>/dev/null`
+  if [ "$netstatinfo" ]; then
+    echo -e "\e[01;32m Active Connections:\e[00m\n$netstatinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #listening tcp udo
+  netstatsumm=`netstat -antup 2>/dev/null`
+  if [ "$netstatsumm" ]; then
+    echo -e "\e[01;32m Listening TCP/UDP:\e[00m\n$netstatsumm" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+}
+
+#add check, global file we can edit or execute | v1 end
+user(){
+  echo -e '\e[1;32m### User #############################################################################\e[00m'
+  echo -e ''
+
+  #current user details
+  usrinfo=`id 2>/dev/null`
+  if [ "$usrinfo" ]; then
+    echo -e "\e[01;32m Current user/group info:\e[00m\n$usrinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #who is logged on the system
+  loggedusrinfo=`w 2>/dev/null`
+  if [ "$loggedusrinfo" ]; then
+    echo -e "\e[01;32m Who else is logged on:\e[00m\n$loggedusrinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #show listing of last logged in users
+  lastloginfo=`last 2>/dev/null`
+  if [ "$lastloginfo" ]; then
+    echo -e "\e[01;32m Last logged in users:\e[00m\n$lastloginfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  userlistinfo=`cat /etc/passwd | cut -d: -f1 2>/dev/null`
+  if [ "$userlistinfo" ]; then
+    echo -e "\e[01;32m User List:\e[00m\n$userlistinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  superuserlistinfo=`grep -v -E "^#" /etc/passwd | awk -F: '$3 == 0 { print $1}' 2>/dev/null`
+  if [ "$superuserlistinfo" ]; then
+    echo -e "\e[01;32m Super User List:\e[00m\n$superuserlistinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #contents of /etc/passwd
+  passwdinfo=`cat /etc/passwd 2>/dev/null`
+  if [ "$passwdinfo" ]; then
+    echo -e "\e[01;32m Contents of /etc/passwd:\e[00m\n$passwdinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #contents of /etc/shadow
+  shadowinfo=`cat /etc/shadow 2>/dev/null`
+  shadowperm=`ls -al /etc/shadow`
+  if [ "$shadowinfo" ]; then
+    echo -e "\e[01;32m Contents of /etc/shadow:\e[00m\n$shadowinfo" 
+    echo -e "\n" 
+  else 
+    echo -e "\e[01;31m Can't read /etc/shadow\e[00m" 
+    echo -e "$shadowperm"
+    echo -e "\n" 
+  fi
+
+  sudoersinfo=`cat /etc/sudoers 2>/dev/null`
+  sudoperm=`ls -al /etc/sudoers`
+  if [ "$sudoersinfo" ]; then
+    echo -e "\e[01;32m Contents of /etc/sudoers:\e[00m\n$sudoersinfo" 
+
+    echo -e "\n" 
+  else 
+    echo -e "\e[01;31m Can't read /etc/sudoers\e[00m" 
+    echo -e "$sudoperm"
+    echo -e "\n"
+  fi
+
+  #can we sudo without supplying a password
+  nopsudo=`echo '' | sudo -S -l -k 2>/dev/null`
+  if [ "$nopsudo" ]; then
+    echo -e "\e[01;32m We can sudo without supplying a password\e[00m\n$nopsudo" 
+    echo -e "\n" 
+  else 
+    echo -e "\e[01;31m We can't sudo without supplying a password\e[00m\n"
+  fi
+
+  #check if we can read root home dir
+  roothdir=`ls -ahl /root/ 2>/dev/null`
+  if [ "$roothdir" ]; then
+    echo -e "\e[01;32m We can read root's home directory\e[00m\n$roothdir" 
+    echo -e "\n" 
+  else 
+    echo -e "\e[01;31m We can't read root's home directory\e[00m\n"
+  fi
+  #display home dir content
+  homedirinfo=`ls -ahl ~ 2>/dev/null`
+  if [ "$homedirinfo" ] ; then
+    echo -e "\e[01;32m Home directory contents:\e[00m\n$homedirinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+}
+
+#add check | v1 end
+cronj(){
+  echo -e '\e[1;32m### CronJobs #########################################################################\e[00m'
+  echo -e ''
+
+  #cronjobs info
+  cronjobsinfo=`ls -la /etc/cron* 2>/dev/null`
+  if [ "$cronjobsinfo" ]; then
+    echo -e "\e[01;32m Cron jobs:\e[00m\n$cronjobsinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #contents of /etc/cron*
+  croncont=`cat /etc/cron* 2>/dev/null`
+  if [ "$croncont" ]; then
+    echo -e "\e[01;32m Contents of /etc/cron*:\e[00m\n$croncont" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #crontab info
+  crontabinfo=`crontab -l 2>/dev/null`
+  crontabvalue=`cat /etc/crontab 2>/dev/null`
+  if [ "$crontabinfo" ]; then
+    echo -e "\e[01;32m Crontab:\e[00m\n$crontabinfo" 
+    echo -e "\n" 
+    if [ "$crontabvalue" ]; then
+     echo -e "\e[01;32m Crontab contents:\e[00m\n$crontabvalue" 
+      echo -e "\n" 
+    else 
+     :
+    fi
+  else 
+    :
+  fi
+
+  #/var/spool contains data which is awaiting some kind of later processing. Data in /var/spool represents work to be done in the future (by a program, user, or administrator); often data is deleted after it has been processed
+  
+  #cron var info
+  cvarinfo=`ls -la /var/spool/cron 2>/dev/null`
+  if [ "$cvarinfo" ]; then
+    echo -e "\e[01;32m Contents of /var/spool/cron:\e[00m\n$cvarinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #crontab var info
+  ctvarinfo=`ls -la /var/spool/cron/crontabs 2>/dev/null`
+  if [ "$ctvarinfo" ]; then
+    echo -e "\e[01;32m Contents of /var/spool/cron/crontabs:\e[00m\n$ctvarinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+
+  #anacron jobs info
+  anacronjobs=`ls -la /etc/anacrontab 2>/dev/null`
+  if [ "$anacronjobs" ]; then
+    echo -e "\e[01;32m Anacron jobs file permissions:\e[00m\n$anacronjobs" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #anacrontab contents
+  acjobscont=`cat /etc/anacrontab 2>/dev/null`
+  if [ "$acjobscont" ]; then
+    echo -e "\e[01;32m Contents of /etc/anacrontab:\e[00m\n$acjobscont" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #anacron var info
+  actabinfo=`ls -la /var/spool/anacron 2>/dev/null`
+  if [ "$actabinfo" ]; then
+    echo -e "\e[01;32m Contents of /var/spool/anacron:\e[00m\n$actabinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+}
+
+#add more common sw | v1 end
+swver(){
+  echo -e '\e[1;32m### Software Versions ################################################################\e[00m'
+  echo -e ''
+
+  #sudo version
+  sudoinfo=`sudo -V 2>/dev/null`
+  if [ "$sudoinfo" ]; then
+    echo -e "\e[01;32m Sudo version:\e[00m\n$sudoinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #mysql version
+  mysqlinfo=`mysql --version 2>/dev/null`
+  if [ "$mysqlinfo" ]; then
+    echo -e "\e[01;32m mysql version:\e[00m\n$mysqlinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #apache version
+  apacheinfo=`apache2 -v 2>/dev/null`
+  if [ "$apacheinfo" ]; then
+    echo -e "\e[01;32m Apache version:\e[00m\n$apacheinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #httpd version
+  httpdinfo=`httpd -v 2>/dev/null`
+  if [ "$apachever" ]; then
+    echo -e "\e[01;32m Httpd version:\e[00m\n$apachever" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+
+  #gcc version
+  gccinfo=`gcc --version 2>/dev/null`
+  if [ "$gccinfo" ]; then
+    echo -e "\e[01;32m gcc version:\e[00m\n$gccinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #cc version
+  ccinfo=`cc -v  2>/dev/null`
+  if [ "$ccinfo" ]; then
+    echo -e "\e[01;32m cc version:\e[00m\n$ccinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  echo -e "\e[01;32m Useful tools locations:\e[00m" ;     which python 2>/dev/null ; 
+                                                          which python3 2>/dev/null ; 
+                                                          which java 2>/dev/null ; 
+                                                          which perl 2>/dev/null ; 
+                                                          which ruby 2>/dev/null; 
+                                                          which curl 2>/dev/null ;
+                                                          which nc 2>/dev/null ; 
+                                                          which netcat 2>/dev/null ; 
+                                                          which wget 2>/dev/null ; 
+                                                          which nmap 2>/dev/null ; 
+                                                          which gcc 2>/dev/null; 
+                                                          which vi 2>/dev/null ;
+                                                          which vim 2>/dev/null ;
+                                                          which emacs 2>/dev/null ;
+                                                          which lua 2>/dev/null ;
+                                                          which tar 2>/dev/null ;
+                                                          which zip 2>/dev/null ;
+                                                          which gzip 2>/dev/null ;
+                                                          which gdb 2>/dev/null ;
+                                                          which git 2>/dev/null ;
+                                                          which ftp 2>/dev/null ;
+                                                          which php 2>/dev/null ;
+                                                          which telnet 2>/dev/null ;
+                                                          which ssh 2>/dev/null ;
+                                                          which less 2>/dev/null ;
+                                                          which more 2>/dev/null ;
+                                                          which nano 2>/dev/null ;
+                                                          which cp 2>/dev/null ;
+                                                          which mv 2>/dev/null ;
+                                                          which find 2>/dev/null ;
+
+
+}
+
+
+searcherr(){
+  echo -e '\e[1;32m### Bad Config Search ################################################################\e[00m'
+  echo -e ''
+
+  #search for suid files
+  suidf=`find / -perm -u=s -type f 2>/dev/null`
+  if [ "$suidf" ]; then
+    echo -e "\e[01;32m SUID files:\e[00m\n$suidf" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+
+  #search for guid files
+  guidf=`find / -perm -g=s -type f 2>/dev/null`
+  if [ "$guidf" ]; then
+    echo -e "\e[01;32m GUID files:\e[00m\n$guidf" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #quick search for SUID and GUID files
+  # Looks in 'common' places: /bin, /sbin, /usr/bin, /usr/sbin, /usr/local/bin, /usr/local/sbin and any other *bin,
+  #qsguid=`for i in `locate -r "bin$"`; do find $i \( -perm -4000 -o -perm -2000 \) -type f 2>/dev/null; done`
+  if [ "$qsguid" ]; then
+    echo -e "\e[01;32m GUID files:\e[00m\n$qsguid" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #find world writable folder
+  wdir=`find / -perm -222 -type d 2>/dev/null`
+  if [ "$wdir" ]; then
+    echo -e "\e[01;32m World writable folders:\e[00m\n$wdir" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #find world executable folder
+  edir=`find / -perm -o x -type d 2>/dev/null`
+  if [ "$edir" ]; then
+    echo -e "\e[01;32m World executable folders:\e[00m\n$edir" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #find world writable and executable folderes
+  wedir=`find / \( -perm -o w -perm -o x \) -type d 2>/dev/null`
+  if [ "$wedir" ]; then
+    echo -e "\e[01;32m World executable folders:\e[00m\n$wedir" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #find world writable files
+  wfile=`find / -xdev -type d \( -perm -0002 -a ! -perm -1000 \) -print 2>/dev/null`
+  if [ "$wfile" ]; then
+    echo -e "\e[01;32m World writable files:\e[00m\n$wfile" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #find no owner files
+  noownf=`find / -xdev \( -nouser -o -nogroup \) -print 2>/dev/null`
+  if [ "$noownf" ]; then
+    echo -e "\e[01;32m Not owned files:\e[00m\n$noownf" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #check mail contents
+  mailc=`ls -lah /var/spool/mail 2>/dev/null`
+  if [ "$mailc" ]; then
+    echo -e "\e[01;32m Contents of /var/spool/mail :\e[00m\n$mailc" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  mailc2=`ls -alh /var/mail/ 2>/dev/null`
+  if [ "$mailc2" ]; then
+    echo -e "\e[01;32m Contents of /var/mail :\e[00m\n$mailc2" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #read root mail
+  rootmailcont=`ls -al /var/mail/root 2>/dev/null`
+  if [ "$rootmailcont" ]; then
+    echo -e "\e[01;32m Contents of /var/mail/root :\e[00m\n$rootmailcont" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  rootmailcont2=`ls -al /var/spool/mail/root 2>/dev/null`
+  if [ "$rootmailcont2" ]; then
+    echo -e "\e[01;32m Contents of /var/spool/mail/root :\e[00m\n$rootmailcont2" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #can we read roots mail
+  rootmailinfo=`head /var/mail/root 2>/dev/null`
+  if [ "$rootmailinfo" ]; then
+    echo -e "\e[01;32m Mails in /var/mail/root \e[00m\n$rootmailinfo" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  rootmailinfo2=`head /var/spool/mail/root 2>/dev/null`
+  if [ "$rootmailinfo2" ]; then
+    echo -e "\e[01;32m Mails in /var/mail/root \e[00m\n$rootmailinfo2" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #user bash history
+  bashrec=`cat ~/.bash_history 2>/dev/null`
+  if [ "$bashrec" ]; then
+    echo -e "\e[01;32m User commands history \e[00m\n$bashrec" 
+    echo -e "\n" 
+  else 
+    :
+  fi
+
+  #add nano,php,mysql,ftp history?
+  #add search hidden content on www?
+}
+end(){
+  echo -e '\e[1;32m### End ##########################################################\e[00m'
+}
+
+
+#requires nmap installed
+#scan not saved default, saved with flaf ns
+networkExplorer(){
+echo -e "\e[01;32m NETWORK SCANNING MODE \e[00m\n$nmv"
+
+#print Network Scanning Mode options
+if [ "$save" = 1 ]; then
+	echo -e "\e[0;32m Save scan in current directory: true\e[00m"
+else
+	echo -e "\e[0;32m Save scan in current directory: false\e[00m"
+fi
+
+if [ "$dwn" = 1 ]; then
+	echo -e "\e[0;32m Download site in current directory: true\e[00m"
+else
+	echo -e "\e[0;32m Download site in current directory: false\e[00m"
+fi
+if [ "$gob" = 1 ]; then
+	echo -e "\e[0;32m Running gobuster to enumerate site: true\e[00m"
+else
+	echo -e "\e[0;32m Running gobuster to enumerate site: false\e[00m"
+fi
+
+  #check that nmap is installed on the machine
+   checknmap=`which nmap 2>/dev/null`
+
+   if [ "$checknmap" ]; then
+    nmv=`nmap --version | head -n2`
+    echo -e "\e[0;32m Nmap is installed! \e[00m\n$nmv" 
+
+    #check if the user wants to save the scan
+    if [ "$save" = "1" ]; then
+    	echo -e "\e[0;32m Running ports scan on $ip \e[00m"
+    	nmscan=`nmap --open -sV -sC -oA $ip $ip`
+    	echo "$nmscan"
+    	echo -e "\e[0;32m Scan saved in the current directory! \e[00m"
+    else
+   		echo -e "\e[0;32m Running ports scan on $ip \e[00m"
+    	nmscan=`nmap --open -sV -sC $ip`
+    	echo "$nmscan"
+    	
+	fi
+	#extract the open ports found from the scan summary
+	#[port]/tcp
+	echo -e "\e[0;32m Extracting ports from summary \e[00m"
+	nmresp=$(echo $nmscan | grep -Eo "[0-9]{1,5}\/tcp")
+	ports=$(echo $nmresp | tr "/" "\n" | tr "tcp" "\n")
+	
+	#delete duplicates
+	portsf=$(echo "$ports" | xargs -n1 | sort -u | xargs)
+
+	for port in $portsf
+	do
+		echo "> [$port]"
+	done
+	echo -e "\e[0;32m Done \e[00m"
+	echo -e "\e[0;32m Running tests \e[00m"
+	#execute specific port controls for gathering information
+	for port in $portsf
+	do
+	    
+	    if [ "$port" = "22" ]; then
+	    	echo ook 22
+	    fi
+
+	    if [ "$port" = "80" ]; then
+	    	echo ook 80
+	    	#download index page
+	    	echo -e "\e[0;32m Port $port found open \e[00m"
+	    	echo -e "\e[0;32m Downloading site index page \e[00m"
+	    	curl -o index.html $ip 
+	    	if [ "$dwn" = 1 ]; then
+	    		
+	    		echo -e "\e[0;32m Downloading entire site... It may take a while \e[00m"
+	    		wget  -r -p -U Mozilla $ip #--limit-rate=20K --wait=20 
+	    	fi
+	    	#launch gobuster
+
+	    	if [ "$gob" = 1 ]; then
+	    		checkgob=`which gobuster 2>/dev/null`
+	    		if ["checkgob"]; then
+	    			echo -e "\e[0;32m Gobuster is installed! \e[00m\n" 
+	    			echo -e "\e[0;32m Running Gobuster... It may take a while \e[00m"
+	    			#
+	    		else
+	    			echo -ne "\e[0;31m Gobuster not found on the system\n"
+					echo -ne "\e[0;31m Install it before running the script with the -g option"
+					sleep 1 
+					echo -ne "."
+					sleep 1
+					echo -ne "."
+					sleep 1
+					echo -ne "."
+					sleep 1
+					echo -e "Quitting\e[00m"
+	    		fi
+	    	fi
+
+	    fi
+	    
+	done
+
+	echo $portsf
+	
+	#common checks on open ports
+  else 
+    echo -ne "\e[0;31m Nmap not found on the system\n"
+    echo -ne "\e[0;31m Install it before running the script in this mode"
+	sleep 1 
+	echo -ne "."
+	sleep 1
+	echo -ne "."
+	sleep 1
+	echo -ne "."
+	sleep 1
+	echo -e "Quitting\e[00m"
+
+  fi
+}
+
+
+
+#sw configs, files ...
+exec()
+{
+  tag
+  system
+  hardware
+  environment
+  network
+  user
+  cronj
+  swver
+  searcherr
+  end
+
+}
+
+while getopts "ahvsdgn:" option; do
+ case "${option}" in
+    a) all=1;;
+    h) usage; exit;;
+    v) version; exit;;
+    n) ip=${OPTARG}; tag; networkExplorer; end; exit;;
+	#s) ip=${OPTARG}; save=1; tag; networkExplorer; end; exit;; #save scan in current location
+	s) save=1;;
+	d) dwn=1;;
+	g) gob=1;;
+    *) exit;;
+ esac
+done
+
+exec
+
