@@ -851,26 +851,27 @@ end(){
 
 
 #requires nmap installed
-#scan not saved default, saved with flaf ns
+#scan not saved default, saved with flag -s
 networkExplorer(){
 echo -e "\e[01;32m NETWORK SCANNING MODE \e[00m\n$nmv"
 
 #print Network Scanning Mode options
 if [ "$save" = 1 ]; then
-	echo -e "\e[0;32m Save scan in current directory: true\e[00m"
+	echo -e "\e[0;32m[*] Save scan in current directory: true\e[00m"
 else
-	echo -e "\e[0;32m Save scan in current directory: false\e[00m"
+	echo -e "\e[0;32m[*] Save scan in current directory: false\e[00m"
 fi
 
 if [ "$dwn" = 1 ]; then
-	echo -e "\e[0;32m Download site in current directory: true\e[00m"
+	echo -e "\e[0;32m[*] Download site in current directory: true\e[00m"
 else
-	echo -e "\e[0;32m Download site in current directory: false\e[00m"
+	echo -e "\e[0;32m[*] Download site in current directory: false\e[00m"
 fi
-if [ "$gob" = 1 ]; then
-	echo -e "\e[0;32m Running gobuster to enumerate site: true\e[00m"
+
+if [ "$dirb" = 1 ]; then
+	echo -e "\e[0;32m[*] Running dirb to enumerate site: true\e[00m"
 else
-	echo -e "\e[0;32m Running gobuster to enumerate site: false\e[00m"
+	echo -e "\e[0;32m[*] Running dirb to enumerate site: false\e[00m"
 fi
 
   #check that nmap is installed on the machine
@@ -878,23 +879,23 @@ fi
 
    if [ "$checknmap" ]; then
     nmv=`nmap --version | head -n2`
-    echo -e "\e[0;32m Nmap is installed! \e[00m\n$nmv" 
+    echo -e "\e[0;32m[*] Nmap executable found! \e[00m\n$nmv" 
 
     #check if the user wants to save the scan
     if [ "$save" = "1" ]; then
-    	echo -e "\e[0;32m Running ports scan on $ip \e[00m"
+    	echo -e "\e[0;32m[*] Running ports scan on $ip \e[00m"
     	nmscan=`nmap --open -sV -sC -oA $ip $ip`
     	echo "$nmscan"
-    	echo -e "\e[0;32m Scan saved in the current directory! \e[00m"
+    	echo -e "\e[0;32m[*] Scan saved in the current directory! \e[00m"
     else
-   		echo -e "\e[0;32m Running ports scan on $ip \e[00m"
+   		echo -e "\e[0;32m[*] Running ports scan on $ip \e[00m"
     	nmscan=`nmap --open -sV -sC $ip`
     	echo "$nmscan"
     	
 	fi
 	#extract the open ports found from the scan summary
 	#[port]/tcp
-	echo -e "\e[0;32m Extracting ports from summary \e[00m"
+	echo -e "\e[0;32m[*] Extracting ports from summary \e[00m"
 	nmresp=$(echo $nmscan | grep -Eo "[0-9]{1,5}\/tcp")
 	ports=$(echo $nmresp | tr "/" "\n" | tr "tcp" "\n")
 	
@@ -905,38 +906,63 @@ fi
 	do
 		echo "> [$port]"
 	done
-	echo -e "\e[0;32m Done \e[00m"
-	echo -e "\e[0;32m Running tests \e[00m"
+	echo -e "\e[0;32m[*] Done \e[00m"
+	echo -e "\e[0;32m[*] Running tests \e[00m"
 	#execute specific port controls for gathering information
 	for port in $portsf
 	do
 	    
 	    if [ "$port" = "22" ]; then
-	    	echo ook 22
+	    	echo "No test available yet"
 	    fi
 
 	    if [ "$port" = "80" ]; then
-	    	echo ook 80
 	    	#download index page
-	    	echo -e "\e[0;32m Port $port found open \e[00m"
-	    	echo -e "\e[0;32m Downloading site index page \e[00m"
+	    	echo -e "\e[0;32m[*] Port $port found open \e[00m"
+	    	echo -e "\e[0;32m[*] Downloading site index page \e[00m"
 	    	curl -o index.html $ip 
 	    	if [ "$dwn" = 1 ]; then
 	    		
-	    		echo -e "\e[0;32m Downloading entire site... It may take a while \e[00m"
-	    		wget  -r -p -U Mozilla $ip #--limit-rate=20K --wait=20 
+	    		echo -e "\e[0;32m[*] Downloading entire site... It may take a while \e[00m"
+	    		#useful options to not get caught --limit-rate=20K --wait=20
+	    		wget  -r -p -U Mozilla $ip  
 	    	fi
 	    	#launch gobuster
 
-	    	if [ "$gob" = 1 ]; then
-	    		checkgob=`which gobuster 2>/dev/null`
-	    		if ["checkgob"]; then
-	    			echo -e "\e[0;32m Gobuster is installed! \e[00m\n" 
-	    			echo -e "\e[0;32m Running Gobuster... It may take a while \e[00m"
-	    			#
+	    	if [ "$dirb" = 1 ]; then
+	    		checkdirb=`which dirb 2>/dev/null`
+	    		if [ "$checkdirb" ]; then
+	    			echo -e "\e[0;32m[*] Dirb executable found! \e[00m\n" 
+	    			if [ "$wl" != 1 ]; then
+	    				{
+	    					echo -e "\e[0;32m[*] Using default wordlist: /usr/share/dirb/wordlists/common.txt\e[00m\n"
+	    					#wrdl="/usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt"
+	    					wrdl="/usr/share/dirb/wordlists/common.txt"
+	    				}
+	    			fi
+	    			echo -e "\e[0;32m[*] Using specified wordlist: $wrdl \e[00m\n"
+	    			echo -e "\e[0;32m[*] Running Dirb... It may take a while \e[00m"
+	    			
+	    			if [ "$pt" = 1 ]; then
+	    				if [ ${path:0:1} == "/" ]; then
+	    					echo -e "\e[0;32m[*] Starting Dirb in $path \e[00m"
+	    				
+	    					dirb "http://$ip$path" "$wrdl" -r -l
+	    				else
+	    					echo -e "\e[0;32m[*] Starting Dirb in /$path \e[00m"
+
+	    					dirb "http://$ip/$path" "$wrdl" -r -l
+	    				fi
+
+	    			else
+	    				
+		    			#if the site accepts only https, change the prefix
+		    			dirb "http://$ip" "$wrdl" -r -l
+		    		fi
+
 	    		else
-	    			echo -ne "\e[0;31m Gobuster not found on the system\n"
-					echo -ne "\e[0;31m Install it before running the script with the -g option"
+	    			echo -ne "\e[0;31m[*] Dirb executable not found on the system\n"
+					echo -ne "\e[0;31m[*] Install it before running the script with the -g option"
 					sleep 1 
 					echo -ne "."
 					sleep 1
@@ -948,16 +974,14 @@ fi
 	    		fi
 	    	fi
 
-	    fi
-	    
+	    fi    
 	done
-
-	echo $portsf
+	
 	
 	#common checks on open ports
   else 
-    echo -ne "\e[0;31m Nmap not found on the system\n"
-    echo -ne "\e[0;31m Install it before running the script in this mode"
+    echo -ne "\e[0;31m[*] Nmap executable not found on the system\n"
+    echo -ne "\e[0;31m[*] Install it before running the script in this mode"
 	sleep 1 
 	echo -ne "."
 	sleep 1
@@ -988,7 +1012,7 @@ exec()
 
 }
 
-while getopts "ahvsdgn:" option; do
+while getopts "ahvsdgn:p:w:" option; do
  case "${option}" in
     a) all=1;;
     h) usage; exit;;
@@ -997,7 +1021,9 @@ while getopts "ahvsdgn:" option; do
 	#s) ip=${OPTARG}; save=1; tag; networkExplorer; end; exit;; #save scan in current location
 	s) save=1;;
 	d) dwn=1;;
-	g) gob=1;;
+	g) dirb=1;;
+	w) wrdl=${OPTARG}; wl=1;;
+	p) path=${OPTARG}; pt=1;;
     *) exit;;
  esac
 done
