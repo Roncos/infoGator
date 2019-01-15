@@ -1,5 +1,5 @@
 #!/bin/bash
-version="version 0.1"
+version="infoGator v0.2.1"
 tag()
 {
   echo -n $'\e[1;92m'
@@ -40,23 +40,28 @@ echo -e "\n\e[1;32m#############################################################
 echo -e "\e[01;32m###\e[00m" "Local Linux Information Gatherer" "\e[01;32m###\e[00m"
 echo -e "\e[1;32m######################################################################################\e[00m"
 
-echo -e " Example: \n" #todo
+echo -e " Example: \n"
 
 	echo "./infoGator.sh -a"
 	echo "./infoGator.sh -n 192.168.10.11"
 	echo "./infoGator.sh -d -s -n 192.168.10.11"
+	echo "./infoGator.sh -g -w /usr/share/dirb/wordlist/big.txt -p /man -n 192.168.10.11"
     echo "OPTIONS:"
-    echo "-a  Run all tests on host" #todo #??
+    echo "-a  Run all tests on host"
     echo "-h  Displays usage info"
     echo "-v  Print current version"
     echo "-n [IP] Network Scanning Mode - scan given IP and run tests on open ports"
-    echo "	  	  IMPORTANT Nmap is required to run the script in this mode"
+    echo "	  	  IMPORTANT Nmap executable required to run the script in this mode"
     echo "		  WARNING use Network Scanning Mode options BEFORE specifing -n"	
     echo "-s  Network Scanning Mode - saves the scan in the current directory"
     echo "-d  Network Scanning Mode - download entire site in the current directory"
+    echo "-g  Network Scanning Mode - enables Dirb to scan the site searching for common directories"
+    echo "	  	  IMPORTANT Dirb executable required to run the script in this mode"
+    echo "-w [PATH] Network Scanning Mode - specify a custom path to the wordlist for the scan"
+    echo "-p [PATH] Network Scanning Mode - specify a custom site path where Dirb will launch the scan"
     echo -e "\n"
 
-    echo "Running with no options = Machine Summary"
+    echo "Running with no options = Less Tests Executed"
     
 echo -e "\e[1;32m######################################################################################\e[00m"
      
@@ -117,7 +122,7 @@ hardware(){
 
   #message from last boot
   infoboot=`dmesg 2>/dev/null`
-  if [ "$infoboot" ]; then
+  if [ "$infoboot" ]&& [ "$all" ]; then
     echo -e "\e[1;32m$ Info from Last System Boot:\e[00m\n$infoboot" 
     echo -e "\n" 
   else 
@@ -126,7 +131,7 @@ hardware(){
 
   #list PCI buses and devices
   pciinfo=`lspci 2>/dev/null`
-  if [ "$pciinfo" ]; then
+  if [ "$pciinfo" ]&& [ "$all" ]; then
     echo -e "\e[1;32m$ PCI Buses and Devices:\e[00m\n$pciinfo" 
     echo -e "\n" 
   else 
@@ -135,7 +140,7 @@ hardware(){
 
   #list USB buses and devices
   usbinfo=`lsusb 2>/dev/null`
-  if [ "$usbinfo" ]; then
+  if [ "$usbinfo" ]&& [ "$all" ]; then
     echo -e "\e[1;32m$ USB Buses and Devices:\e[00m\n$usbinfo" 
     echo -e "\n" 
   else 
@@ -145,7 +150,7 @@ hardware(){
   #print cpu info
   cpuinfo=`lscpu 2>/dev/null`
   cpuinfo2=`cat /proc/cpuinfo 2>/dev/null`
-  if [ "$cpuinfo" ]; then
+  if [ "$cpuinfo" ]&& [ "$all" ]; then
     echo -e "\e[1;32m$ CPU Information:\e[00m\n$cpuinfo" 
     echo -e "\n" 
   else 
@@ -157,7 +162,7 @@ hardware(){
 
   #list machine components
   hwinfo=`lshw 2>/dev/null`
-  if [ "$hwinfo" ]; then
+  if [ "$hwinfo" ]&& [ "$all" ]; then
     echo -e "\e[1;32m$ Components Information:\e[00m\n$hwinfo" 
     echo -e "\n" 
   else 
@@ -166,7 +171,7 @@ hardware(){
 
   #display memory usage
   meminfo=`cat /proc/meminfo 2>/dev/null`
-  if [ "$meminfo" ]; then
+  if [ "$meminfo" ]&& [ "$all" ]; then
     echo -e "\e[1;32m$ RAM Information:\e[00m\n$meminfo" 
     echo -e "\n" 
   else 
@@ -395,16 +400,16 @@ network(){
 
   #Print network connections, routing tables, interface statistics
   netstatinfo=`netstat -anop 2>/dev/null`
-  if [ "$netstatinfo" ]; then
+  if [ "$netstatinfo" ]&& [ "$all" ]; then
     echo -e "\e[01;32m Active Connections:\e[00m\n$netstatinfo" 
     echo -e "\n" 
   else 
     :
   fi
 
-  #listening tcp udo
+  #listening tcp udp
   netstatsumm=`netstat -antup 2>/dev/null`
-  if [ "$netstatsumm" ]; then
+  if [ "$netstatsumm" ]&& [ "$all" ]; then
     echo -e "\e[01;32m Listening TCP/UDP:\e[00m\n$netstatsumm" 
     echo -e "\n" 
   else 
@@ -583,7 +588,7 @@ cronj(){
 
   #anacron jobs info
   anacronjobs=`ls -la /etc/anacrontab 2>/dev/null`
-  if [ "$anacronjobs" ]; then
+  if [ "$anacronjobs" ]&& [ "$all" ]; then
     echo -e "\e[01;32m Anacron jobs file permissions:\e[00m\n$anacronjobs" 
     echo -e "\n" 
   else 
@@ -592,7 +597,7 @@ cronj(){
 
   #anacrontab contents
   acjobscont=`cat /etc/anacrontab 2>/dev/null`
-  if [ "$acjobscont" ]; then
+  if [ "$acjobscont" ]&& [ "$all" ]; then
     echo -e "\e[01;32m Contents of /etc/anacrontab:\e[00m\n$acjobscont" 
     echo -e "\n" 
   else 
@@ -601,7 +606,7 @@ cronj(){
 
   #anacron var info
   actabinfo=`ls -la /var/spool/anacron 2>/dev/null`
-  if [ "$actabinfo" ]; then
+  if [ "$actabinfo" ]&& [ "$all" ]; then
     echo -e "\e[01;32m Contents of /var/spool/anacron:\e[00m\n$actabinfo" 
     echo -e "\n" 
   else 
@@ -739,7 +744,7 @@ searcherr(){
 
   #find world writable folder
   wdir=`find / -perm -222 -type d 2>/dev/null`
-  if [ "$wdir" ]; then
+  if [ "$wdir" ]&& [ "$all" ]; then
     echo -e "\e[01;32m World writable folders:\e[00m\n$wdir" 
     echo -e "\n" 
   else 
@@ -748,7 +753,7 @@ searcherr(){
 
   #find world executable folder
   edir=`find / -perm -o x -type d 2>/dev/null`
-  if [ "$edir" ]; then
+  if [ "$edir" ]&& [ "$all" ]; then
     echo -e "\e[01;32m World executable folders:\e[00m\n$edir" 
     echo -e "\n" 
   else 
@@ -757,7 +762,7 @@ searcherr(){
 
   #find world writable and executable folderes
   wedir=`find / \( -perm -o w -perm -o x \) -type d 2>/dev/null`
-  if [ "$wedir" ]; then
+  if [ "$wedir" ]&& [ "$all" ]; then
     echo -e "\e[01;32m World executable folders:\e[00m\n$wedir" 
     echo -e "\n" 
   else 
@@ -775,7 +780,7 @@ searcherr(){
 
   #find no owner files
   noownf=`find / -xdev \( -nouser -o -nogroup \) -print 2>/dev/null`
-  if [ "$noownf" ]; then
+  if [ "$noownf" ]&& [ "$all" ]; then
     echo -e "\e[01;32m Not owned files:\e[00m\n$noownf" 
     echo -e "\n" 
   else 
@@ -927,7 +932,7 @@ fi
 	    		#useful options to not get caught --limit-rate=20K --wait=20
 	    		wget  -r -p -U Mozilla $ip  
 	    	fi
-	    	#launch gobuster
+	    	#launch dirb
 
 	    	if [ "$dirb" = 1 ]; then
 	    		checkdirb=`which dirb 2>/dev/null`
@@ -957,6 +962,7 @@ fi
 	    			else
 	    				
 		    			#if the site accepts only https, change the prefix
+		    			#-r no recursive -l show location header
 		    			dirb "http://$ip" "$wrdl" -r -l
 		    		fi
 
@@ -977,7 +983,7 @@ fi
 	    fi    
 	done
 	
-	
+	#UPDATE USAGE
 	#common checks on open ports
   else 
     echo -ne "\e[0;31m[*] Nmap executable not found on the system\n"
@@ -1018,7 +1024,6 @@ while getopts "ahvsdgn:p:w:" option; do
     h) usage; exit;;
     v) version; exit;;
     n) ip=${OPTARG}; tag; networkExplorer; end; exit;;
-	#s) ip=${OPTARG}; save=1; tag; networkExplorer; end; exit;; #save scan in current location
 	s) save=1;;
 	d) dwn=1;;
 	g) dirb=1;;
