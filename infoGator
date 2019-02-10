@@ -37,28 +37,28 @@ tag()
 usage () 
 { 
 echo -e "\n\e[1;32m######################################################################################\e[00m" 
-echo -e "\e[01;32m###\e[00m" "Local Linux Information Gatherer" "\e[01;32m###\e[00m"
+echo -e "\e[01;32m###\e[00m" "Linux Information Gatherer" "\e[01;32m###\e[00m"
 echo -e "\e[1;32m######################################################################################\e[00m"
 
-echo -e " Example: \n"
+echo -e " EXAMPLES: \n"
 
 	echo "./infoGator.sh -a"
 	echo "./infoGator.sh -n 192.168.10.11"
 	echo "./infoGator.sh -d -s -n 192.168.10.11"
-	echo "./infoGator.sh -g -w /usr/share/dirb/wordlist/big.txt -p /man -n 192.168.10.11"
-    echo "OPTIONS:"
+	echo -e "./infoGator.sh -g -w /usr/share/dirb/wordlist/big.txt -p /man -n 192.168.10.11 \n"
+    echo " OPTIONS:"
     echo "-a  Run all tests on host"
     echo "-h  Displays usage info"
     echo "-v  Print current version"
-    echo "-n [IP] Network Scanning Mode - scan given IP and run tests on open ports"
+    echo "-n [IP] Machine Inspection Mode - scan given IP and run tests on open ports"
     echo "	  	  IMPORTANT Nmap executable required to run the script in this mode"
-    echo "		  WARNING use Network Scanning Mode options BEFORE specifing -n"	
-    echo "-s  Network Scanning Mode - saves the scan in the current directory"
-    echo "-d  Network Scanning Mode - download entire site in the current directory"
-    echo "-g  Network Scanning Mode - enables Dirb to scan the site searching for common directories"
+    echo "		  WARNING use Machine Inspection Mode options BEFORE specifing -n"	
+    echo "-s  Machine Inspection Mode - saves the scan in the current directory"
+    echo "-d  Machine Inspection Mode - download entire site in the current directory"
+    echo "-g  Machine Inspection Mode - enables Dirb to scan the site searching for common directories"
     echo "	  	  IMPORTANT Dirb executable required to run the script in this mode"
-    echo "-w [PATH] Network Scanning Mode - specify a custom path to the wordlist for the scan"
-    echo "-p [PATH] Network Scanning Mode - specify a custom site path where Dirb will launch the scan"
+    echo "-w [PATH] Machine Inspection Mode - specify a custom path to the wordlist for the scan"
+    echo "-p [PATH] Machine Inspection Mode - specify a custom site path where Dirb will launch the scan"
     echo -e "\n"
 
     echo "Running with no options = Less Tests Executed"
@@ -285,7 +285,7 @@ environment(){
   fi
 
   
-  #print installed packeges Debian
+  #print installed packages Debian
   pkginfo=`dpkg -l 2>/dev/null`
   if [ "$pkginfo" ] && [ "$all" ]; then
     echo -e "\e[1;32m$ Installed Packages :\e[00m\n$pkginfo" 
@@ -294,7 +294,7 @@ environment(){
     :
   fi
 
-  #print installed packeges Solaris
+  #print installed packages Solaris
   pkginfo2=`pkginfo 2>/dev/null`
   if [ "$pkginfo2" ] && [ "$all" ]; then
     echo -e "\e[1;32m$ Installed Packages :\e[00m\n$pkginfo2" 
@@ -303,7 +303,7 @@ environment(){
     :
   fi
 
-  #print installed packeges Arch Linux
+  #print installed packages Arch Linux
   pkginfo3=`pacman -Q 2>/dev/null`
   if [ "$pkginfo3" ] && [ "$all" ]; then
     echo -e "\e[1;32m$ Installed Packages :\e[00m\n$pkginfo3" 
@@ -763,7 +763,7 @@ searcherr(){
   #find world writable and executable folderes
   wedir=`find / \( -perm -o w -perm -o x \) -type d 2>/dev/null`
   if [ "$wedir" ]&& [ "$all" ]; then
-    echo -e "\e[01;32m World executable folders:\e[00m\n$wedir" 
+    echo -e "\e[01;32m World writable and executable folders:\e[00m\n$wedir" 
     echo -e "\n" 
   else 
     :
@@ -857,10 +857,10 @@ end(){
 
 #requires nmap installed
 #scan not saved default, saved with flag -s
-networkExplorer(){
-echo -e "\e[01;32m NETWORK SCANNING MODE \e[00m\n$nmv"
+machineInxp(){
+echo -e "\e[01;32m### MACHINE INSPECTION MODE ##########################################################\e[00m\n$nmv"
 
-#print Network Scanning Mode options
+#print Machine Inspection Mode options
 if [ "$save" = 1 ]; then
 	echo -e "\e[0;32m[*] Save scan in current directory: true\e[00m"
 else
@@ -918,6 +918,7 @@ fi
 	do
 	    
 	    if [ "$port" = "22" ]; then
+	    	echo -e "\e[0;32m[*] Port $port found open \e[00m"
 	    	echo "No test available yet"
 	    fi
 
@@ -925,7 +926,7 @@ fi
 	    	#download index page
 	    	echo -e "\e[0;32m[*] Port $port found open \e[00m"
 	    	echo -e "\e[0;32m[*] Downloading site index page \e[00m"
-	    	curl -o index.html $ip 
+	    	curl -o index $ip 
 	    	if [ "$dwn" = 1 ]; then
 	    		
 	    		echo -e "\e[0;32m[*] Downloading entire site... It may take a while \e[00m"
@@ -937,10 +938,10 @@ fi
 	    	if [ "$dirb" = 1 ]; then
 	    		checkdirb=`which dirb 2>/dev/null`
 	    		if [ "$checkdirb" ]; then
-	    			echo -e "\e[0;32m[*] Dirb executable found! \e[00m\n" 
+	    			echo -e "\e[0;32m[*] Dirb executable found! \e[00m" 
 	    			if [ "$wl" != 1 ]; then
 	    				{
-	    					echo -e "\e[0;32m[*] Using default wordlist: /usr/share/dirb/wordlists/common.txt\e[00m\n"
+	    					echo -e "\e[0;32m[*] Using default wordlist: /usr/share/dirb/wordlists/common.txt\e[00m"
 	    					#wrdl="/usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt"
 	    					wrdl="/usr/share/dirb/wordlists/common.txt"
 	    				}
@@ -1003,7 +1004,7 @@ fi
 
 
 #sw configs, files ...
-exec()
+execEn()
 {
   tag
   system
@@ -1015,15 +1016,24 @@ exec()
   swver
   searcherr
   end
-
+  exit
 }
 
+execMI(){
+	tag
+	machineInxp
+	end
+	exit
+}
+
+
+#inital function for parsing opts and args, init vars - exit if none found
 while getopts "ahvsdgn:p:w:" option; do
  case "${option}" in
     a) all=1;;
     h) usage; exit;;
     v) version; exit;;
-    n) ip=${OPTARG}; tag; networkExplorer; end; exit;;
+    n) ne=1; ip=${OPTARG};; 
 	s) save=1;;
 	d) dwn=1;;
 	g) dirb=1;;
@@ -1033,5 +1043,11 @@ while getopts "ahvsdgn:p:w:" option; do
  esac
 done
 
-exec
+
+if [ "$ne" = 1 ]; then
+	execMI
+else
+	execEn
+fi
+
 
